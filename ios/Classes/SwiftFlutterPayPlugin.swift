@@ -82,7 +82,31 @@ public class SwiftFlutterPayPlugin: NSObject, FlutterPlugin {
     private func paymentResult(pkPayment: PKPayment?) {
         if let result = flutterResult {
             if let payment = pkPayment {
-                let token = String(data: payment.token.paymentData, encoding: .utf8)
+                let paymentDataDictionary: [AnyHashable: Any]? = try? JSONSerialization.jsonObject(with: payment.token.paymentData, options: .mutableContainers) as! [AnyHashable : Any]
+
+                var paymentType: String = "debit"
+                var paymentMethodDictionary: [AnyHashable: Any] = ["network": "", "type": paymentType, "displayName": ""]
+                paymentMethodDictionary = ["network": payment.token.paymentMethod.network ?? "", "type": paymentType, "displayName": payment.token.paymentMethod.displayName ?? ""]
+
+                switch payment.token.paymentMethod.type {
+                    case .debit:
+                        paymentType = "debit"
+                    case .credit:
+                        paymentType = "credit"
+                    case .store:
+                        paymentType = "store"
+                    case .prepaid:
+                        paymentType = "prepaid"
+                    default:
+                        paymentType = "unknown"
+                }
+
+                let cryptogramDictionary: [AnyHashable: Any] = ["paymentData": paymentDataDictionary ?? "", "transactionIdentifier": payment.token.transactionIdentifier, "paymentMethod": paymentMethodDictionary]
+
+                let cardCryptogramPacketDictionary: [AnyHashable: Any] = cryptogramDictionary
+                let cardCryptogramPacketData: Data? = try? JSONSerialization.data(withJSONObject: cardCryptogramPacketDictionary, options: [])
+
+                let token = String(data: cardCryptogramPacketData!, encoding: .utf8)
                 result(["token": token])
             } else {
                 result(FlutterError(code: "userCancelledError", message: "User cancelled the payment", details: nil))

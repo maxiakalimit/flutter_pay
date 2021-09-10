@@ -6,12 +6,11 @@ class FlutterPay {
   /// Switch Google Pay [environment]
   ///
   /// See [PaymentEnvironment]
-  void setEnvironment(
-      {PaymentEnvironment environment = PaymentEnvironment.Test}) {
+  Future<void> setEnvironment({PaymentEnvironment environment}) async {
     var params = <String, bool>{
       "isTestEnvironment": environment == PaymentEnvironment.Test,
     };
-    _channel.invokeMethod('switchEnvironment', params);
+    await _channel.invokeMethod('switchEnvironment', params);
   }
 
   /// Returns `true` if Apple/ Google Pay is available on device
