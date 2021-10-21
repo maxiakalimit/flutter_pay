@@ -6,7 +6,8 @@ class FlutterPay {
   /// Switch Google Pay [environment]
   ///
   /// See [PaymentEnvironment]
-  Future<void> setEnvironment({PaymentEnvironment environment}) async {
+  Future<void> setEnvironment(
+      {PaymentEnvironment environment = PaymentEnvironment.Test}) async {
     var params = <String, bool>{
       "isTestEnvironment": environment == PaymentEnvironment.Test,
     };
