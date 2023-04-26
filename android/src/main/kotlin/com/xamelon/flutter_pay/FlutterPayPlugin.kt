@@ -35,9 +35,9 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
 
     private fun createPaymentsClient() {
         val walletOptions = Wallet.WalletOptions.Builder()
-                .setEnvironment(environment)
-                .setTheme(WalletConstants.THEME_LIGHT)
-                .build()
+            .setEnvironment(environment)
+            .setTheme(WalletConstants.THEME_LIGHT)
+            .build()
         this.googlePayClient = Wallet.getPaymentsClient(this.activity, walletOptions)
     }
 
@@ -58,10 +58,10 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
 
         val args = call.arguments as? Map<String, Any>
         val method = call.method as String
-        if (args !is Map<String, Any> && (method == "canMakePaymentsWithActiveCard" || method == "requestPayment" || method == "switchEnvironment" )) {
+        if (args !is Map<String, Any> && (method == "canMakePaymentsWithActiveCard" || method == "requestPayment" || method == "switchEnvironment")) {
             this.lastResult?.error("invalidParameters", "Invalid parameters", "Invalid parameters")
             return
-        } 
+        }
 
         when (method) {
             "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
@@ -91,34 +91,39 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
 
     private fun getBaseRequest(): JSONObject {
         return JSONObject()
-                .put("apiVersion", 2)
-                .put("apiVersionMinor", 0)
+            .put("apiVersion", 2)
+            .put("apiVersionMinor", 0)
     }
 
     private fun getGatewayJsonTokenizationType(gatewayName: String, gatewayMerchantID: String): JSONObject {
         return JSONObject().put("type", "PAYMENT_GATEWAY")
-                .put("parameters", JSONObject()
-                        .put("gateway", gatewayName)
-                        .put("gatewayMerchantId", gatewayMerchantID))
+            .put(
+                "parameters", JSONObject()
+                    .put("gateway", gatewayName)
+                    .put("gatewayMerchantId", gatewayMerchantID)
+            )
     }
 
     private fun getAllowedCardSystems(): JSONArray {
         return JSONArray()
-                .put("MASTERCARD")
-                .put("VISA")
-                .put("AMEX")
-                .put("DISCOVER")
-                .put("INTERAC")
-                .put("JCB")
+            .put("MASTERCARD")
+            .put("VISA")
+            .put("AMEX")
+            .put("DISCOVER")
+            .put("INTERAC")
+            .put("JCB")
     }
 
     private fun getAllowedCardAuthMethods(): JSONArray {
         return JSONArray()
-                .put("PAN_ONLY")
-                .put("CRYPTOGRAM_3DS")
+            .put("PAN_ONLY")
+            .put("CRYPTOGRAM_3DS")
     }
 
-    private fun getBaseCardPaymentMethod(allowedPaymentNetworks: List<String>? = null, allowedAuthMethods: List<String>? = null): JSONObject {
+    private fun getBaseCardPaymentMethod(
+        allowedPaymentNetworks: List<String>? = null,
+        allowedAuthMethods: List<String>? = null
+    ): JSONObject {
         val cardPaymentMethod = JSONObject().put("type", "CARD")
 
         val cardNetworks: JSONArray = if (allowedPaymentNetworks == null) {
@@ -136,14 +141,19 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
         print("getBaseCardPaymentMethod, authMethods: ${authMethods}\n")
 
         val params = JSONObject()
-                .put("allowedAuthMethods", authMethods)
-                .put("allowedCardNetworks", cardNetworks)
+            .put("allowedAuthMethods", authMethods)
+            .put("allowedCardNetworks", cardNetworks)
 
         cardPaymentMethod.put("parameters", params)
         return cardPaymentMethod
     }
 
-    private fun getCardPaymentMethod(gatewayName: String, gatewayMerchantID: String, allowedPaymentNetworks: List<String>? = null, allowedAuthMethods: List<String>? = null): JSONObject {
+    private fun getCardPaymentMethod(
+        gatewayName: String,
+        gatewayMerchantID: String,
+        allowedPaymentNetworks: List<String>? = null,
+        allowedAuthMethods: List<String>? = null
+    ): JSONObject {
         val cardPaymentMethod = getBaseCardPaymentMethod(allowedPaymentNetworks, allowedAuthMethods)
         val tokenizationOptions = getGatewayJsonTokenizationType(gatewayName, gatewayMerchantID)
         cardPaymentMethod.put("tokenizationSpecification", tokenizationOptions)
@@ -152,10 +162,10 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
 
     private fun getTransactionInfo(totalPrice: Double, currencyCode: String, countryCode: String): JSONObject {
         return JSONObject()
-                .put("totalPrice", totalPrice.toString())
-                .put("totalPriceStatus", "FINAL")
-                .put("countryCode", countryCode)
-                .put("currencyCode", currencyCode)
+            .put("totalPrice", totalPrice.toString())
+            .put("totalPriceStatus", "FINAL")
+            .put("countryCode", countryCode)
+            .put("currencyCode", currencyCode)
     }
 
     private fun requestPayment(args: Map<String, Any>) {
@@ -201,16 +211,19 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
         }
 
         var merchantInfo = JSONObject()
-                .putOpt("merchantName", merchantName)
-                .putOpt("merchantId", merchantId)
+            .putOpt("merchantName", merchantName)
+            .putOpt("merchantId", merchantId)
 
         if (merchantInfo.length() == 0) merchantInfo = null
 
         val paymentRequestJson = getBaseRequest()
-                .putOpt("merchantInfo", merchantInfo)
-                .put("emailRequired", emailRequired)
-                .put("transactionInfo", getTransactionInfo(totalPrice, currencyCode, countryCode))
-                .put("allowedPaymentMethods", JSONArray().put(getCardPaymentMethod(gatewayName, gatewayMerchantID, paymentNetworks, authMethods)))
+            .putOpt("merchantInfo", merchantInfo)
+            .put("emailRequired", emailRequired)
+            .put("transactionInfo", getTransactionInfo(totalPrice, currencyCode, countryCode))
+            .put(
+                "allowedPaymentMethods",
+                JSONArray().put(getCardPaymentMethod(gatewayName, gatewayMerchantID, paymentNetworks, authMethods))
+            )
 
         val paymentDataRequest = PaymentDataRequest.fromJson(paymentRequestJson.toString(4))
 
@@ -219,15 +232,15 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
 
         if (paymentDataRequest != null) {
             val task = googlePayClient
-                    .loadPaymentData(paymentDataRequest)
-                    .addOnCompleteListener {
-                        try {
-                            print("${it.getResult(ApiException::class.java)}")
-                        } catch (e: ApiException) {
+                .loadPaymentData(paymentDataRequest)
+                .addOnCompleteListener {
+                    try {
+                        print("${it.getResult(ApiException::class.java)}")
+                    } catch (e: ApiException) {
 
-                            print("Tortik:  ${e.message}\n")
-                        }
+                        print("Tortik:  ${e.message}\n")
                     }
+                }
             AutoResolveHelper.resolveTask(task, this.activity, LOAD_PAYMENT_DATA_REQUEST_CODE)
         }
 
